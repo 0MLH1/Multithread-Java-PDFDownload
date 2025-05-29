@@ -4,12 +4,16 @@ import javax.swing.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Downloader {
     private final String fileURL;
     private final int numThreads;
     private final String fileFormat;
     private final JTextArea logArea;
+    private String outputFileName;
+
 
     public Downloader(String fileURL, int numThreads, String fileFormat, JTextArea logArea) {
         this.fileURL = fileURL;
@@ -27,8 +31,9 @@ public class Downloader {
 
             log("Taille du fichier : " + fileSize + " octets");
 
-            long startTime = System.nanoTime();
-
+            // Génération d'un nom unique basé sur la date/heure
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            outputFileName = "downloads/fichier-final_" + timeStamp + "." + fileFormat;
 
             int partSize = fileSize / numThreads;
             DownloadThread[] threads = new DownloadThread[numThreads];
@@ -49,18 +54,17 @@ public class Downloader {
             }
 
             assembleParts(numThreads);
-            log("Téléchargement terminé et fichier assemblé.");
-
-            
+            log("Téléchargement terminé et fichier assemblé: " + outputFileName);
 
         } catch (Exception e) {
             log("Erreur : " + e.getMessage());
         }
     }
 
+
   
     private void assembleParts(int parts) throws IOException {
-        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("fichier-final." + fileFormat))) {
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFileName))) {
             for (int i = 0; i < parts; i++) {
                 try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream("part" + i))) {
                     byte[] buffer = new byte[4096];
