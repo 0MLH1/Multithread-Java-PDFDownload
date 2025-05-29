@@ -8,11 +8,13 @@ import java.net.URL;
 public class Downloader {
     private final String fileURL;
     private final int numThreads;
+    private final String fileFormat;
     private final JTextArea logArea;
 
-    public Downloader(String fileURL, int numThreads, JTextArea logArea) {
+    public Downloader(String fileURL, int numThreads, String fileFormat, JTextArea logArea) {
         this.fileURL = fileURL;
         this.numThreads = numThreads;
+        this.fileFormat = fileFormat;
         this.logArea = logArea;
     }
 
@@ -25,6 +27,9 @@ public class Downloader {
 
             log("Taille du fichier : " + fileSize + " octets");
 
+            long startTime = System.nanoTime();
+
+
             int partSize = fileSize / numThreads;
             DownloadThread[] threads = new DownloadThread[numThreads];
 
@@ -35,18 +40,27 @@ public class Downloader {
                 threads[i].start();
             }
 
-            for (DownloadThread thread : threads) thread.join();
+            for (DownloadThread thread : threads) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    log("Thread interrompu : " + e.getMessage());
+                }
+            }
 
             assembleParts(numThreads);
             log("Téléchargement terminé et fichier assemblé.");
+
+            
 
         } catch (Exception e) {
             log("Erreur : " + e.getMessage());
         }
     }
 
+  
     private void assembleParts(int parts) throws IOException {
-        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("fichier-final.pdf"))) {
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("fichier-final." + fileFormat))) {
             for (int i = 0; i < parts; i++) {
                 try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream("part" + i))) {
                     byte[] buffer = new byte[4096];
@@ -60,7 +74,12 @@ public class Downloader {
         }
     }
 
-    private void log(String msg) {
-        SwingUtilities.invokeLater(() -> logArea.append(msg + "\n"));
+    private void log(String message) {
+        SwingUtilities.invokeLater(() -> {
+            logArea.append("\n" + message);
+            logArea.setCaretPosition(logArea.getDocument().getLength());
+        });
     }
 }
+
+    

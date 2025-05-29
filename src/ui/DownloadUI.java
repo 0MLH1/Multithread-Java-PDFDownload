@@ -3,13 +3,9 @@ package ui;
 import core.Downloader;
 
 import javax.swing.*;
-import javax.swing.border.AbstractBorder;
-import javax.swing.plaf.basic.BasicButtonUI;
-import javax.swing.plaf.basic.BasicTextFieldUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.RoundRectangle2D;
 
 public class DownloadUI extends JFrame {
     private JTextField urlField;
@@ -17,6 +13,7 @@ public class DownloadUI extends JFrame {
     private JButton startButton;
     private JTextArea logArea;
     private Timer pulseTimer;
+    private JComboBox<String> formatComboBox;
     private float pulseAlpha = 0.3f;
     private boolean pulseDirection = true;
 
@@ -39,7 +36,7 @@ public class DownloadUI extends JFrame {
 
     private void initializeUI() {
         setTitle("AI Download Manager");
-        setSize(800, 500);
+        setSize(680, 570);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setUndecorated(true);
@@ -121,8 +118,25 @@ public class DownloadUI extends JFrame {
         // URL Input
         JPanel urlPanel = createInputGroup("DOWNLOAD URL", "Enter the file URL to download...");
         urlField = (JTextField) ((JPanel) urlPanel.getComponent(1)).getComponent(0);
-        urlField.setText("https://www.example.com/file.pdf");
+        urlField.setText("https://www.example.com/file");
         panel.add(urlPanel);
+        panel.add(Box.createVerticalStrut(20));
+
+        // File Format ComboBox
+        JPanel formatPanel = new JPanel(new BorderLayout());
+        formatPanel.setOpaque(false);
+        JLabel formatLabel = new JLabel("SELECT FILE TYPE");
+        formatLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        formatLabel.setForeground(Color.WHITE);
+        formatPanel.add(formatLabel, BorderLayout.NORTH);
+
+        String[] formats = { "mp4", "mp3", "pdf", "xlsx", "csv", "txt","docx"};
+        formatComboBox = new JComboBox<>(formats);
+        formatComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        formatComboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        formatPanel.add(formatComboBox, BorderLayout.SOUTH);
+
+        panel.add(formatPanel);
         panel.add(Box.createVerticalStrut(20));
 
         // Thread Input and Start Button Row
@@ -146,6 +160,7 @@ public class DownloadUI extends JFrame {
 
         return panel;
     }
+
 
     private JPanel createInputGroup(String label, String placeholder) {
         JPanel group = new JPanel(new BorderLayout(0, 8));
@@ -271,7 +286,7 @@ public class DownloadUI extends JFrame {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
                 g2d.setColor(CARD_BG);
-                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 11);
 
                 g2d.dispose();
                 super.paintComponent(g);
@@ -393,6 +408,8 @@ public class DownloadUI extends JFrame {
             return;
         }
 
+        String selectedFormat = (String) formatComboBox.getSelectedItem();
+
         logArea.append("\n[INFO] Starting download with " + threads + " threads...");
         logArea.append("\n[INFO] URL: " + url);
         logArea.setCaretPosition(logArea.getDocument().getLength());
@@ -401,14 +418,24 @@ public class DownloadUI extends JFrame {
         startButton.setEnabled(false);
         startButton.setText("DOWNLOADING...");
 
-        // Create and start downloader
-        Downloader downloader = new Downloader(url, threads, logArea);
+        // Create and start downloader with timing
+        Downloader downloader = new Downloader(url, threads, selectedFormat, logArea);
+
         new Thread(() -> {
+            long startTime = System.currentTimeMillis();
+
             downloader.startDownload();
+
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime; // duration in milliseconds
+
             SwingUtilities.invokeLater(() -> {
                 startButton.setEnabled(true);
                 startButton.setText("START DOWNLOAD");
+                logArea.append("\n[INFO] Download completed in " + duration + " ms.");
+                logArea.setCaretPosition(logArea.getDocument().getLength());
             });
         }).start();
     }
+
 }
