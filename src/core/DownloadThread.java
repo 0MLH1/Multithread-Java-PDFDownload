@@ -25,6 +25,7 @@ public class DownloadThread extends Thread {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestProperty("Range", "bytes=" + startByte + "-" + endByte);
+            conn.setRequestProperty("Accept-Encoding", "identity");
 
             try (InputStream in = conn.getInputStream();
                  FileOutputStream out = new FileOutputStream("part" + id)) {

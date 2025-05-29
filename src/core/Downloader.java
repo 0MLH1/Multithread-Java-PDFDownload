@@ -24,6 +24,8 @@ public class Downloader {
 
     public void startDownload() {
         try {
+            long startTime = System.currentTimeMillis();  // ⏱ Début du chronométrage
+
             URL url = new URL(fileURL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             int fileSize = conn.getContentLength();
@@ -56,6 +58,11 @@ public class Downloader {
             assembleParts(numThreads);
             log("Téléchargement terminé et fichier assemblé: " + outputFileName);
 
+            long endTime = System.currentTimeMillis();  // ⏱ Fin du chronométrage
+            long duration = endTime - startTime;
+
+            log("[INFO] Durée totale du téléchargement : " + duration + " ms");
+
         } catch (Exception e) {
             log("Erreur : " + e.getMessage());
         }
@@ -85,5 +92,3 @@ public class Downloader {
         });
     }
 }
-
-    

@@ -130,7 +130,7 @@ public class DownloadUI extends JFrame {
         formatLabel.setForeground(Color.WHITE);
         formatPanel.add(formatLabel, BorderLayout.NORTH);
 
-        String[] formats = { "mp4", "mp3", "pdf", "xlsx", "csv", "txt","docx"};
+        String[] formats = { "mp4", "mp3", "jpg", "png", "webp", "pdf", "xlsx", "csv", "txt","docx"};
         formatComboBox = new JComboBox<>(formats);
         formatComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         formatComboBox.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -422,17 +422,11 @@ public class DownloadUI extends JFrame {
         Downloader downloader = new Downloader(url, threads, selectedFormat, logArea);
 
         new Thread(() -> {
-            long startTime = System.currentTimeMillis();
-
             downloader.startDownload();
-
-            long endTime = System.currentTimeMillis();
-            long duration = endTime - startTime; // duration in milliseconds
 
             SwingUtilities.invokeLater(() -> {
                 startButton.setEnabled(true);
                 startButton.setText("START DOWNLOAD");
-                logArea.append("\n[INFO] Download completed in " + duration + " ms.");
                 logArea.setCaretPosition(logArea.getDocument().getLength());
             });
         }).start();
